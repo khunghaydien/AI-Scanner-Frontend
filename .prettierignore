@@ -1,0 +1,50 @@
+# Dependencies
+node_modules
+package-lock.json
+
+# Build outputs
+.next
+out
+dist
+build
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage
+.nyc_output
+
+# Next.js
+.next
+out
+
+# Public assets (optional - uncomment if you don't want to format these)
+# public
+
+# Generated files
+*.generated.*
+
+
+
+
+
+
+
