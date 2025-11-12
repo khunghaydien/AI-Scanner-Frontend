@@ -24,10 +24,17 @@ function buildUrl(baseUrl: string, endpoint: string): string {
  * Tạo headers cơ bản
  */
 function createBaseHeaders(options?: RequestInit): HeadersInit {
-  return {
-    'Content-Type': 'application/json',
+  const headers: HeadersInit = {
     ...(options?.headers as Record<string, string>),
   };
+
+  // Chỉ set Content-Type nếu không phải FormData
+  // FormData cần browser tự động set Content-Type với boundary
+  if (!(options?.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  return headers;
 }
 
 /**

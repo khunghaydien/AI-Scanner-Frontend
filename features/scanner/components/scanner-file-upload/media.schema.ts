@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const createScannerSchema = (t: (key: string) => string) =>
+export const createMediaSchema = (t: (key: string) => string) =>
   z.object({
     files: z
       .any()
@@ -28,3 +28,4 @@ export const createScannerSchema = (t: (key: string) => string) =>
         }
       ),
   });
+
