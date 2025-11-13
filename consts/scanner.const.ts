@@ -5,7 +5,7 @@ export const FILES_FIELD: FormFieldConfig = {
   name: 'files',
   type: 'files',
   placeholderKey: 'select_files',
-  accept: 'image/*,.doc,.docx,.txt,.pdf,.xlsx,.xls',
+  accept: 'image/*',
   required: true,
 };
 
