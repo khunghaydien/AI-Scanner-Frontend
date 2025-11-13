@@ -57,7 +57,7 @@
   "privacy_policy": "Quyền riêng tư",
   "files": "Tệp",
   "files_required": "Vui lòng chọn ít nhất một tệp",
-  "max_files_exceeded": "Chỉ được phép tối đa 10 tệp",
+  "max_files_exceeded": "Chỉ được phép tối đa 100 tệp",
   "select_files": "Chọn tệp",
   "description": "Mô tả",
   "description_placeholder": "Nhập mô tả (tùy chọn)",

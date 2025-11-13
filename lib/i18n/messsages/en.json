@@ -57,7 +57,7 @@
   "privacy_policy": "Privacy Policy",
   "files": "Files",
   "files_required": "Please select at least one file",
-  "max_files_exceeded": "Maximum 10 files allowed",
+  "max_files_exceeded": "Maximum 100 files allowed",
   "select_files": "Select files",
   "description": "Description",
   "description_placeholder": "Enter description (optional)",

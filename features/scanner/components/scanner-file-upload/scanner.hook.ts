@@ -68,163 +68,98 @@ function buildResponse(
 }
 
 /**
- * Format error messages from errors array
+ * Chunk array into groups of specified size
  */
-function formatErrorMessages(
-  errors: Array<{ fileName: string; error: string }>
-): string {
-  return errors.map((e) => `${e.fileName}: ${e.error}`).join('; ');
-}
-
-/**
- * Check if all uploads are complete and resolve/reject accordingly
- */
-function checkAllUploadsComplete(
-  completedCount: number,
-  totalFiles: number,
-  results: Media[],
-  errors: Array<{ fileName: string; error: string }>,
-  resolve: (value: MediaResponse) => void,
-  reject: (reason?: any) => void
-): void {
-  if (completedCount !== totalFiles) {
-    return;
+function chunkArray<T>(array: T[], chunkSize: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += chunkSize) {
+    chunks.push(array.slice(i, i + chunkSize));
   }
-
-  const response = buildResponse(results, errors);
-
-  if (errors.length === totalFiles) {
-    const errorMessages = formatErrorMessages(errors);
-    reject(new Error(`All uploads failed. ${errorMessages}`));
-  } else {
-    resolve(response);
-  }
+  return chunks;
 }
 
 /**
- * Handle successful file upload
+ * Upload a single file
  */
-function handleUploadSuccess(
+async function uploadSingleFile(
   file: File,
-  result: Media,
-  results: Media[],
-  completedCount: { value: number },
-  totalFiles: number,
-  errors: Array<{ fileName: string; error: string }>,
-  resolve: (value: MediaResponse) => void,
-  reject: (reason?: any) => void
-): void {
-  results.push(result);
-  completedCount.value++;
-  console.log(`✓ ${file.name} uploaded successfully`);
+  description: string | undefined
+): Promise<{ file: File; result: Media }> {
+  const result = await MediaService.uploadFileScanerColor(file, { description });
+  return { file, result };
+}
 
-  checkAllUploadsComplete(
-    completedCount.value,
-    totalFiles,
-    results,
-    errors,
-    resolve,
-    reject
+/**
+ * Upload a chunk of files concurrently
+ */
+async function uploadChunk(
+  chunk: File[],
+  description: string | undefined
+): Promise<Array<{ file: File; result: Media } | { file: File; error: string }>> {
+  const uploadPromises = chunk.map((file) =>
+    uploadSingleFile(file, description).catch((error) => ({
+      file,
+      error: error?.message || `Failed to upload ${file.name}`,
+    }))
   );
+
+  return Promise.all(uploadPromises);
 }
 
 /**
- * Handle failed file upload
+ * Upload all files with chunking and parallel processing
+ * - Chunks files into groups of 10
+ * - Uploads up to 10 chunks concurrently (100 files max at once)
+ * - Each chunk processes 10 files in parallel
  */
-function handleUploadError(
-  file: File,
-  error: any,
-  errors: Array<{ fileName: string; error: string }>,
-  completedCount: { value: number },
-  totalFiles: number,
-  results: Media[],
-  resolve: (value: MediaResponse) => void,
-  reject: (reason?: any) => void
-): void {
-  const errorMessage = error?.message || `Failed to upload ${file.name}`;
-  errors.push({
-    fileName: file.name,
-    error: errorMessage,
-  });
-  completedCount.value++;
-  console.error(`✗ ${file.name} failed: ${errorMessage}`);
-
-  checkAllUploadsComplete(
-    completedCount.value,
-    totalFiles,
-    results,
-    errors,
-    resolve,
-    reject
-  );
-}
-
-/**
- * Start upload for a single file
- */
-function startFileUpload(
-  file: File,
-  description: string | undefined,
-  results: Media[],
-  errors: Array<{ fileName: string; error: string }>,
-  completedCount: { value: number },
-  totalFiles: number,
-  resolve: (value: MediaResponse) => void,
-  reject: (reason?: any) => void
-): void {
-  MediaService.uploadFileScanerColor(file, { description })
-    .then((result) => {
-      handleUploadSuccess(
-        file,
-        result,
-        results,
-        completedCount,
-        totalFiles,
-        errors,
-        resolve,
-        reject
-      );
-    })
-    .catch((error) => {
-      handleUploadError(
-        file,
-        error,
-        errors,
-        completedCount,
-        totalFiles,
-        results,
-        resolve,
-        reject
-      );
-    });
-}
-
-/**
- * Upload all files concurrently
- */
-function uploadAllFiles(
+async function uploadAllFiles(
   filesArray: File[],
   description: string | undefined
 ): Promise<MediaResponse> {
+  const CHUNK_SIZE = 10; // 10 files per chunk
+  const MAX_CONCURRENT_CHUNKS = 10; // Process 10 chunks at once (100 files max)
+
   const results: Media[] = [];
   const errors: Array<{ fileName: string; error: string }> = [];
-  const completedCount = { value: 0 };
-  const totalFiles = filesArray.length;
 
-  return new Promise<MediaResponse>((resolve, reject) => {
-    filesArray.forEach((file) => {
-      startFileUpload(
-        file,
-        description,
-        results,
-        errors,
-        completedCount,
-        totalFiles,
-        resolve,
-        reject
-      );
-    });
-  });
+  // Chunk files into groups of 10
+  const chunks = chunkArray(filesArray, CHUNK_SIZE);
+  console.log(`📦 Split ${filesArray.length} files into ${chunks.length} chunks`);
+
+  // Process chunks in batches (10 chunks at a time)
+  for (let i = 0; i < chunks.length; i += MAX_CONCURRENT_CHUNKS) {
+    const chunkBatch = chunks.slice(i, i + MAX_CONCURRENT_CHUNKS);
+    console.log(
+      `🚀 Processing chunks ${i + 1}-${Math.min(i + MAX_CONCURRENT_CHUNKS, chunks.length)} (${chunkBatch.length} chunks, ~${chunkBatch.reduce((sum, chunk) => sum + chunk.length, 0)} files)`
+    );
+
+    // Process all chunks in this batch concurrently
+    const chunkResults = await Promise.all(
+      chunkBatch.map((chunk) => uploadChunk(chunk, description))
+    );
+
+    // Flatten results and separate successes from errors
+    for (const chunkResult of chunkResults) {
+      for (const item of chunkResult) {
+        if ('result' in item) {
+          results.push(item.result);
+          console.log(`✓ ${item.file.name} uploaded successfully`);
+        } else {
+          errors.push({
+            fileName: item.file.name,
+            error: item.error,
+          });
+          console.error(`✗ ${item.file.name} failed: ${item.error}`);
+        }
+      }
+    }
+
+    console.log(
+      `✅ Batch ${Math.floor(i / MAX_CONCURRENT_CHUNKS) + 1} completed: ${results.length} success, ${errors.length} errors`
+    );
+  }
+
+  return buildResponse(results, errors);
 }
 
 export function useMedia(t: (key: string) => string) {

@@ -94,7 +94,7 @@ export const FileInput = React.forwardRef<HTMLInputElement, FileInputProps>(
         )}
 
         {files.length > 0 && (
-          <Box className="mt-4 h-full w-full overflow-y-auto scrollbar-hide max-h-[424px]">
+          <Box className="mt-4 h-full w-full overflow-y-auto scrollbar-hide max-h-[200px]">
             <Box className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 rounded-lg">
               {files.map((file, index) => {
                 const flags = computeFlags(file);

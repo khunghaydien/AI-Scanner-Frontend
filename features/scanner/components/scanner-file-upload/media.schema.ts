@@ -21,7 +21,7 @@ export const createMediaSchema = (t: (key: string) => string) =>
         (files) => {
           if (!files) return false;
           const length = files instanceof FileList ? files.length : files?.length || 0;
-          return length <= 10;
+          return length <= 100;
         },
         {
           message: t('max_files_exceeded'),
