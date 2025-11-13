@@ -172,7 +172,7 @@ function startFileUpload(
   resolve: (value: MediaResponse) => void,
   reject: (reason?: any) => void
 ): void {
-  MediaService.uploadFileScanner(file, { description })
+  MediaService.uploadFileScanerColor(file, { description })
     .then((result) => {
       handleUploadSuccess(
         file,

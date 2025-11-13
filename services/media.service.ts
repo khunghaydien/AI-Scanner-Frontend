@@ -73,6 +73,47 @@ export class MediaService {
     }
   }
 
+  static async uploadFileExtractBackground(file: File, data?: UploadFileData) {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      if (data?.description) {
+        formData.append('description', data.description);
+      }
+
+      const response = await fetchClient<{ data: Media }>('/media/extract-background', {
+        method: 'POST',
+        body: formData,
+      });
+
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to upload file');
+    }
+  }
+
+  static async uploadFileScanerColor(file: File, data?: UploadFileData) {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      if (data?.description) {
+        formData.append('description', data.description);
+      }
+
+      const response = await fetchClient<{ data: Media }>('/media/scanner-color', {
+        method: 'POST',
+        body: formData,
+      });
+
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to upload file');
+    }
+  }
+
+
 
   /**
    * Get all files for the current user
