@@ -67,5 +67,7 @@
   "file_input_drop_here": "Drop files here",
   "file_preview_loading": "Loading preview...",
   "file_preview_size": "Size",
-  "file_preview_unsupported": "Only supports preview for image, doc, docx, txt and pdf"
+  "file_preview_unsupported": "Only supports preview for image, doc, docx, txt and pdf",
+  "magic_scanner_batch": "Magic Scanner Batch",
+  "magic_scanner_chunked": "Magic Scanner Chunked"
 }

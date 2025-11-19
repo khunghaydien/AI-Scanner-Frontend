@@ -5,6 +5,25 @@ export interface UploadFileData {
   description?: string;
 }
 
+export interface BatchUploadDto {
+  batchId?: string;
+  batchIndex?: number;
+  totalFiles?: number;
+  description?: string;
+}
+
+export interface ChunkedBatchResponse {
+  isComplete: boolean;
+  totalFiles?: number;
+  rembgImages?: Media[];
+  pdfBwUrl?: string;
+  pdfColorUrl?: string;
+  failedFiles?: Array<{ fileName: string; error: string }>;
+  batchId?: string;
+  batchIndex?: number;
+  message?: string;
+}
+
 export interface UpdateFileData {
   description?: string;
   status?: string;
@@ -92,6 +111,27 @@ export class MediaService {
       throw new Error(error.message || 'Failed to upload file');
     }
   }
+  static async uploadMagicScannerBatch(files: File[], data?: UploadFileData) {
+    try {
+      const formData = new FormData();
+      files.forEach(file => {
+        formData.append('files', file);
+      });
+
+      if (data?.description) {
+        formData.append('description', data.description);
+      }
+
+      const response = await fetchClient<{ data: Media[] }>('/media/magic-scanner-batch', {
+        method: 'POST',
+        body: formData,
+      });
+
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to upload files');
+    }
+  }
 
   static async uploadFileScanerColor(file: File, data?: UploadFileData) {
     try {
@@ -110,6 +150,60 @@ export class MediaService {
       return response.data;
     } catch (error: any) {
       throw new Error(error.message || 'Failed to upload file');
+    }
+  }
+
+  /**
+   * Upload chunked batch for magic scanner (max 10 files per chunk)
+   */
+  static async uploadMagicScannerChunked(
+    files: File[],
+    batchDto?: BatchUploadDto
+  ): Promise<ChunkedBatchResponse> {
+    try {
+      const formData = new FormData();
+      files.forEach((file) => {
+        formData.append('files', file);
+      });
+
+      if (batchDto?.batchId) {
+        formData.append('batchId', batchDto.batchId);
+      }
+      if (batchDto?.batchIndex !== undefined) {
+        formData.append('batchIndex', batchDto.batchIndex.toString());
+      }
+      if (batchDto?.totalFiles !== undefined) {
+        formData.append('totalFiles', batchDto.totalFiles.toString());
+      }
+      if (batchDto?.description) {
+        formData.append('description', batchDto.description);
+      }
+
+      const response = await fetchClient<{ data: ChunkedBatchResponse }>(
+        '/media/magic-scanner-chunked',
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to upload chunked batch');
+    }
+  }
+
+  /**
+   * Cancel batch session
+   */
+  static async cancelBatchSession(batchId: string): Promise<void> {
+    try {
+      await fetchClient<{ data: {} }>('/media/magic-scanner-chunked/cancel', {
+        method: 'POST',
+        body: JSON.stringify({ batchId }),
+      });
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to cancel batch session');
     }
   }
 

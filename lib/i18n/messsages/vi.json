@@ -67,5 +67,7 @@
   "file_input_drop_here": "Thả files vào đây",
   "file_preview_loading": "Đang tải preview...",
   "file_preview_size": "Kích thước",
-  "file_preview_unsupported": "Chỉ hỗ trợ preview cho image, doc, docx, txt và pdf"
+  "file_preview_unsupported": "Chỉ hỗ trợ preview cho image, doc, docx, txt và pdf",
+  "magic_scanner_batch": "Quét Hàng Loạt Magic",
+  "magic_scanner_chunked": "Quét Chunked Magic"
 }
