@@ -14,6 +14,7 @@
   "current_password": "Mật khẩu hiện tại",
   "current_password_required": "Mật khẩu hiện tại là bắt buộc",
   "dashboard": "Bảng điều khiển",
+  "global_search_placeholder": "Tìm kiếm trên AI Scanner",
   "debug_info": "Thông tin gỡ lỗi",
   "email": "Email",
   "email_invalid": "Vui lòng nhập email hợp lệ",

@@ -25,15 +25,6 @@ export function ForgotPassword() {
         loadingText={t('loading')}
         submitText={t('send_reset_email')}
       />
-
-      {/* Back to Sign In Link */}
-      <Form.Content>
-        <Box className="text-center mt-2">
-          <Link href="/sign-in" className="cursor-pointer">
-            {t('back_to_sign_in')}
-          </Link>
-        </Box>
-      </Form.Content>
     </Form>
   );
 }

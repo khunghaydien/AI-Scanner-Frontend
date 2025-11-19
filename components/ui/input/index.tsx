@@ -12,6 +12,7 @@ import {
   Chip,
   Box,
 } from '@mui/material';
+import type { TextFieldProps } from '@mui/material/TextField';
 import { UseFormReturn } from 'react-hook-form';
 import { FileInput } from '../files';
 
@@ -60,10 +61,13 @@ export interface FormInputProps {
 
   // For files
   accept?: string;
+
+  // For text-based inputs
+  textFieldProps?: Partial<TextFieldProps>;
 }
 
 // Shared TextField renderer for all TextField-based inputs
-const createTextField = (inputType: string, extraProps?: any) => {
+const createTextField = (inputType: string, extraProps?: Partial<TextFieldProps>) => {
   const TextFieldComponent = (props: FormInputProps, register: any, error?: string) => (
     <TextField
       type={inputType}
@@ -72,8 +76,21 @@ const createTextField = (inputType: string, extraProps?: any) => {
       fullWidth
       variant="outlined"
       error={!!error}
-      helperText={error}
       {...extraProps}
+      {...props.textFieldProps}
+      helperText={error}
+      sx={{
+        ...extraProps?.sx,
+        ...props.textFieldProps?.sx,
+      }}
+      InputProps={{
+        ...extraProps?.InputProps,
+        ...props.textFieldProps?.InputProps,
+      }}
+      InputLabelProps={{
+        ...extraProps?.InputLabelProps,
+        ...props.textFieldProps?.InputLabelProps,
+      }}
       {...register}
     />
   );
@@ -89,7 +106,12 @@ const SelectInput: React.FC<{
 }> = ({ props, register, error }) => (
   <FormControl fullWidth variant="outlined">
     <InputLabel>{props.label}</InputLabel>
-    <Select disabled={props.disabled} label={props.label} {...register}>
+    <Select
+      disabled={props.disabled}
+      label={props.label}
+      input={<OutlinedInput label={props.label} />}
+      {...register}
+    >
       {props.options?.map((option) => (
         <MenuItem key={option.value} value={option.value}>
           {option.label}

@@ -1,11 +1,8 @@
 export const MuiTheme = (isDark: boolean) => ({
   MuiOutlinedInput: {
     styleOverrides: {
-      input: {
-        height: '50px',
-        padding: '0 12px',
-      },
       root: {
+        height: '40px',
         borderRadius: 8,
         '& .MuiOutlinedInput-notchedOutline': {
           borderColor: isDark ? 'hsl(20, 5.9%, 90%)' : 'hsl(20, 5.9%, 90%)',
@@ -20,6 +17,15 @@ export const MuiTheme = (isDark: boolean) => ({
             border: `1px solid ${isDark ? 'hsl(20, 5.9%, 90%)' : 'hsl(20, 5.9%, 90%)'}`,
           },
         },
+        '&.MuiInputBase-multiline': {
+          height: 'auto',
+        },
+      },
+      input: {
+        padding: '0 12px',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
       },
     },
   },
@@ -111,6 +117,9 @@ export const MuiTheme = (isDark: boolean) => ({
         transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
         boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
         color: isDark ? 'hsl(24, 5.4%, 63.9%)' : 'hsl(25, 5.3%, 44.7%)',
+        '& .MuiSvgIcon-root': {
+          fontSize: '1.5rem',
+        },
         '&:hover': {
           boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
           color: isDark ? 'hsl(60, 9.1%, 97.8%)' : 'hsl(20, 14.3%, 4.1%)',

@@ -18,7 +18,6 @@ export function SignIn() {
   return (
     <Form error={error} onSubmit={form.handleSubmit(onSubmit)}>
       <Form.Error />
-
       <Form.Fields form={form} fields={SIGN_IN_FIELDS} translations={t} />
 
       {/* Remember Me and Forgot Password Row */}
@@ -31,9 +30,8 @@ export function SignIn() {
         </Box>
       </Form.Content>
 
-      <SocialSignIn />
-
       <Form.Submit isLoading={isSubmitting} loadingText={t('loading')} submitText={t('sign_in')} />
+      <SocialSignIn />
     </Form>
   );
 }
