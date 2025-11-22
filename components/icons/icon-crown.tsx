@@ -24,4 +24,3 @@ export default function IconCrown({ className, ...props }: React.SVGProps<SVGSVG
     </svg>
   );
 }
-

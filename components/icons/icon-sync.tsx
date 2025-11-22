@@ -22,5 +22,3 @@ export default function IconSync({ ...props }: React.SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
-
-

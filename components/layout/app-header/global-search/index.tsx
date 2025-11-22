@@ -70,4 +70,3 @@ const GlobalSearch = ({
 };
 
 export default GlobalSearch;
-

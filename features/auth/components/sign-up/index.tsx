@@ -20,7 +20,6 @@ export function SignUp() {
 
       <Form.Fields form={form} fields={SIGN_UP_FIELDS} translations={t} />
 
-
       <Form.Submit
         isLoading={isSubmitting}
         loadingText={t('loading')}

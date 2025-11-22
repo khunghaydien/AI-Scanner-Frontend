@@ -58,7 +58,6 @@ interface ErrorBoundaryProps {
   onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
 }
 
-
 export default function ErrorBoundary({
   children,
   fallback: Fallback = ErrorFallback,

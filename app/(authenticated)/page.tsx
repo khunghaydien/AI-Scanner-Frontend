@@ -1,8 +1,9 @@
-// Server component for better performance and LCP
-export default function Page() {
+import RecentFiles from '@/features/home/recent-files';
+
+export default function HomePage() {
   return (
-    <div className="w-full">
-      <h1 className="text-2xl font-bold">Home</h1>
+    <div className="w-full h-full p-4">
+      <RecentFiles />
     </div>
   );
 }

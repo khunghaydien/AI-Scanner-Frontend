@@ -24,9 +24,12 @@ const nextConfig = {
   output: 'standalone', // Optional: for better deployment performance
   // Reduce JavaScript bundle size
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production' ? {
-      exclude: ['error', 'warn'],
-    } : false,
+    removeConsole:
+      process.env.NODE_ENV === 'production'
+        ? {
+            exclude: ['error', 'warn'],
+          }
+        : false,
   },
 };
 

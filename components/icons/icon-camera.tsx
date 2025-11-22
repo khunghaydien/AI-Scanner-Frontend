@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 
-export default function IconHome({ ...props }: React.SVGProps<SVGSVGElement>) {
+export default function IconCamera({ ...props }: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -12,11 +12,12 @@ export default function IconHome({ ...props }: React.SVGProps<SVGSVGElement>) {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={clsx('lucide lucide-home', props.className)}
+      className={clsx('lucide lucide-camera', props.className)}
       {...props}
     >
-      <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-      <polyline points="9 22 9 12 15 12 15 22" />
+      <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+      <circle cx="12" cy="13" r="3" />
     </svg>
   );
 }
+

@@ -13,10 +13,10 @@ function getBaseUrl(): string {
 function buildUrl(baseUrl: string, endpoint: string): string {
   // Remove trailing slashes from baseUrl
   const normalizedBaseUrl = baseUrl.replace(/\/+$/, '');
-  
+
   // Ensure endpoint starts with a slash
   const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  
+
   return `${normalizedBaseUrl}${normalizedEndpoint}`;
 }
 
