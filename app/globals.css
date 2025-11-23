@@ -35,6 +35,8 @@
     font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
     font-feature-settings: 'cv11', 'ss01';
     font-variation-settings: 'opsz' 32;
+    font-size: 14px;
+    line-height: 1.5;
   }
 
   code {

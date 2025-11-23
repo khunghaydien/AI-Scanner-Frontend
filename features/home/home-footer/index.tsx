@@ -25,6 +25,7 @@ export function HomeFooter() {
                 </IconButton>
             ),
             onClick: () => router.push('/'),
+            label: 'Home',
             active: isHomeActive,
         },
         {
@@ -34,6 +35,7 @@ export function HomeFooter() {
                 </IconButton>
             ),
             onClick: () => router.push('/document'),
+            label: 'Document',
             active: isDocumentActive,
         },
         {
@@ -43,6 +45,7 @@ export function HomeFooter() {
                 </IconButton>
             ),
             onClick: () => router.push('/tool'),
+            label: 'Tool',
             active: isToolActive,
         },
         {
@@ -52,6 +55,7 @@ export function HomeFooter() {
                 </IconButton>
             ),
             onClick: () => router.push('/me'),
+            label: 'Me',
             active: isMeActive,
         },
     ];
@@ -61,6 +65,7 @@ export function HomeFooter() {
             buttons={buttons.map(button => ({
                 icon: button.icon,
                 onClick: button.onClick,
+                label: button.label,
                 className: 'flex-1',
                 active: button.active,
             }))}

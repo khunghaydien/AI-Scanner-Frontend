@@ -17,6 +17,16 @@ const config: Config = {
       '2xl': '1536px', // 2X Extra large devices
     },
     extend: {
+      fontSize: {
+        base: '14px',
+        sm: '12px',
+        lg: '16px',
+        xl: '18px',
+        '2xl': '20px',
+        '3xl': '24px',
+        '4xl': '30px',
+        '5xl': '36px',
+      },
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',

@@ -5,12 +5,14 @@ import { useRecentFiles } from './recent-files.hook';
 import { Box, Typography, CircularProgress, Checkbox } from '@mui/material';
 import { FileItem } from './recent-files.hook';
 import { formatDateTime } from './utils';
-import { FileThumbnail } from './file-thumbnail';
 import { FileActions } from './file-actions';
+import Image from 'next/image';
+import ImageIcon from '@mui/icons-material/Image';
 export default function RecentFiles() {
   const { files, isLoading, isError, error, hasNextPage, isFetchingNextPage, fetchNextPage } = useRecentFiles();
   const observerTarget = useRef<HTMLDivElement>(null);
   const [checkedFiles, setCheckedFiles] = useState<Set<string>>(new Set());
+  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
 
   // Infinite scroll handler
   useEffect(() => {
@@ -101,43 +103,58 @@ export default function RecentFiles() {
           </Box>
         </Box>
         <Box className="space-y-2">
-          {files.map((file: FileItem) => (
-            <Box
-              key={file.id}
-              className="group flex gap-4 bg-muted/50 rounded-lg"
-            >
-              {/* Image thumbnail - 100x100px */}
-              <Box className="w-[100px] h-[100px] flex-shrink-0 rounded-lg overflow-hidden bg-muted">
-                <FileThumbnail
-                  fileUrl={file.fileUrl}
-                  fileName={file.fileName}
-                  mimeType={file.mimeType}
-                  thumbnailUrl={file.thumbnailUrl}
-                  previewUrl={file.previewUrl}
-                />
-              </Box>
+          {files.map((file: FileItem) => {
+            const imageUrl = file.thumbnailUrl || file.previewUrl || file.fileUrl;
+            const hasImageError = imageErrors.has(file.id);
+            const isImage = file.mimeType.startsWith('image/');
 
-              {/* File info */}
-              <Box className="flex-1 min-w-0 py-2">
-                <Typography variant="body1" className="font-medium truncate">
-                  {file.fileName}
-                </Typography>
-                <Typography variant="caption" className="text-muted-foreground">
-                  {formatDateTime(file.updatedAt)}
-                </Typography>
-              </Box>
+            return (
+              <Box
+                key={file.id}
+                className="group items-center flex gap-2"
+              >
+                {isImage && !hasImageError ? (
+                  <Image
+                    src={imageUrl}
+                    alt={file.fileName}
+                    width={70}
+                    height={70}
+                    className="w-[70px] h-[70px] object-cover transition-transform duration-300 ease-in-out group-hover:scale-110 rounded-lg"
+                    unoptimized
+                    onError={() => {
+                      setImageErrors((prev) => new Set(prev).add(file.id));
+                    }}
+                  />
+                ) : (
+                  <div className="w-[70px] h-[70px] object-cover transition-transform duration-300 ease-in-out group-hover:scale-110 rounded-lg bg-muted/50 flex items-center justify-center">
+                    <ImageIcon className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                )}
+                <div className="items-center flex gap-4 flex-1 min-w-0 h-[70px] pl-2 bg-muted/50 rounded-lg">
+                  {/* File info */}
+                  <Box className="flex-1 min-w-0">
+                    <Typography variant="body1" className="font-medium truncate">
+                      {file.fileName}
+                    </Typography>
+                    <Typography variant="caption" className="text-muted-foreground">
+                      {formatDateTime(file.updatedAt)}
+                    </Typography>
+                  </Box>
 
-              {/* Checkbox */}
-              <div className="flex items-center justify-center">
-                <Checkbox
-                  className="h-fit"
-                  checked={checkedFiles.has(file.id)}
-                  onChange={() => handleToggleCheck(file.id)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              </div>
-            </Box>
-          ))}
+                  {/* Checkbox */}
+                  <div className="flex items-center justify-center">
+                    <Checkbox
+                      className="h-fit"
+                      checked={checkedFiles.has(file.id)}
+                      onChange={() => handleToggleCheck(file.id)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </div>
+
+              </Box>
+            );
+          })}
         </Box>
 
         {/* Infinite scroll trigger */}

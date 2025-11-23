@@ -1,9 +1,8 @@
-import RecentFiles from '@/features/home/recent-files';
+import dynamic from 'next/dynamic';
+const Home = dynamic(() => import('@/features/home'), {
+  ssr: false,
+});
 
 export default function HomePage() {
-  return (
-    <div className="w-full h-full p-4">
-      <RecentFiles />
-    </div>
-  );
+  return <Home />;
 }

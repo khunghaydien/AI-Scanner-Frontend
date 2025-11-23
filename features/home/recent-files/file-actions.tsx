@@ -60,49 +60,49 @@ export function FileActions({
         {
             icon: (
                 <IconButton
-                    aria-label="Chia sẻ"
+                    aria-label="Share"
                     disabled={!hasSelection}
                     className={clsx(!hasSelection && 'opacity-50 cursor-not-allowed')}
                 >
                     <ShareIcon className={clsx("h-6 w-6", hasSelection ? 'text-foreground' : 'text-muted-foreground')} />
                 </IconButton>
             ),
-            label: 'Chia sẻ',
+            label: 'Share',
             onClick: handleShare
         },
         {
             icon: (
                 <IconButton
-                    aria-label="Sao chép"
+                    aria-label="Copy"
                     disabled={!hasSelection}
                     className={clsx(!hasSelection && 'opacity-50 cursor-not-allowed')}
                 >
                     <ContentCopyIcon className={clsx("h-6 w-6", hasSelection ? 'text-foreground' : 'text-muted-foreground')} />
                 </IconButton>
             ),
-            label: 'Sao chép',
+            label: 'Copy',
             onClick: handleCopy,
         },
         {
             icon: (
                 <IconButton
-                    aria-label="Xóa"
+                    aria-label="Delete"
                     disabled={!hasSelection}
                     className={clsx(!hasSelection && 'opacity-50 cursor-not-allowed')}
                 >
                     <DeleteIcon className={clsx("h-6 w-6", hasSelection ? 'text-foreground' : 'text-muted-foreground')} />
                 </IconButton>
             ),
-            label: 'Xóa',
+            label: 'Delete',
             onClick: handleDelete,
         },
         {
             icon: (
-                <IconButton aria-label="Chỉnh sửa">
+                <IconButton aria-label="Edit">
                     <EditIcon className="h-6 w-6 text-foreground" />
                 </IconButton>
             ),
-            label: 'Chỉnh sửa',
+            label: 'Edit',
             onClick: handleEdit,
             visible: isSingleSelection,
         },
@@ -119,14 +119,14 @@ export function FileActions({
         {
             icon: (
                 <IconButton
-                    aria-label="Khác"
+                    aria-label="More"
                     disabled={!hasSelection}
                     className={clsx(!hasSelection && 'opacity-50 cursor-not-allowed')}
                 >
                     <MoreVertIcon className="h-6 w-6 text-foreground" />
                 </IconButton>
             ),
-            label: 'Khác',
+            label: 'More',
             onClick: handleMore,
         },
     ];
@@ -143,6 +143,7 @@ export function FileActions({
                         key={index}
                         icon={button.icon}
                         onClick={button.onClick}
+                        label={button.label}
                         className="flex-1"
                     />
                 ))}
