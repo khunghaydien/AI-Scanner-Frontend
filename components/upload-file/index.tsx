@@ -154,36 +154,51 @@ export default function UploadFile() {
     setIsOpen(false);
   }, [stopCamera]);
 
-  // Drag handlers
-  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+  // Helper function to initialize drag state
+  const initDragState = useCallback((clientX: number, clientY: number) => {
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
       dragRef.current = {
         isDragging: null as boolean | null, // null = not started, true = dragging, false = stopped
         hasMoved: false,
-        startX: e.clientX,
-        startY: e.clientY,
-        offsetX: e.clientX - rect.left,
-        offsetY: e.clientY - rect.top,
+        startX: clientX,
+        startY: clientY,
+        offsetX: clientX - rect.left,
+        offsetY: clientY - rect.top,
       };
     }
   }, []);
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    // Early return if no drag ref or button ref
+  // Drag handlers for mouse
+  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    initDragState(e.clientX, e.clientY);
+  }, [initDragState]);
+
+  // Drag handlers for touch
+  const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    if (touch) {
+      initDragState(touch.clientX, touch.clientY);
+    }
+  }, [initDragState]);
+
+  // Helper function to update position based on client coordinates
+  const updatePosition = useCallback((clientX: number, clientY: number) => {
     if (!dragRef.current || !buttonRef.current) {
       return;
     }
     
-    // If isDragging is explicitly false (was set by mouseup), don't update
-    // This prevents button from following mouse after release
+    // If isDragging is explicitly false (was set by mouseup/touchend), don't update
+    // This prevents button from following mouse/touch after release
     if (dragRef.current.isDragging === false) {
       return;
     }
     
     const moveThreshold = 5; // pixels
-    const deltaX = Math.abs(e.clientX - dragRef.current.startX);
-    const deltaY = Math.abs(e.clientY - dragRef.current.startY);
+    const deltaX = Math.abs(clientX - dragRef.current.startX);
+    const deltaY = Math.abs(clientY - dragRef.current.startY);
     
     // If moved more than threshold, consider it a drag
     if (deltaX > moveThreshold || deltaY > moveThreshold) {
@@ -194,9 +209,9 @@ export default function UploadFile() {
       const buttonWidth = buttonRef.current.offsetWidth;
       const buttonHeight = buttonRef.current.offsetHeight;
       
-      // Calculate new position: mouse position minus the offset from when drag started
-      const newX = e.clientX - dragRef.current.offsetX;
-      const newY = e.clientY - dragRef.current.offsetY;
+      // Calculate new position: client position minus the offset from when drag started
+      const newX = clientX - dragRef.current.offsetX;
+      const newY = clientY - dragRef.current.offsetY;
       
       // Convert to bottom/right coordinates
       const newRight = window.innerWidth - newX - buttonWidth;
@@ -211,17 +226,30 @@ export default function UploadFile() {
     }
   }, []);
 
-  const handleMouseUp = useCallback(() => {
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    updatePosition(e.clientX, e.clientY);
+  }, [updatePosition]);
+
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    if (touch) {
+      updatePosition(touch.clientX, touch.clientY);
+    }
+  }, [updatePosition]);
+
+  // Helper function to handle drag end
+  const handleDragEnd = useCallback(() => {
     if (dragRef.current) {
       const wasDragging = dragRef.current.isDragging;
       const hasMoved = dragRef.current.hasMoved;
       
-      // Stop dragging immediately - this prevents handleMouseMove from updating position
+      // Stop dragging immediately - this prevents handleMouseMove/handleTouchMove from updating position
       dragRef.current.isDragging = false;
       
       // Save position to localStorage if dragged
       if (wasDragging && hasMoved && typeof window !== 'undefined' && buttonRef.current) {
-        // Get current position from state (it's already updated by handleMouseMove)
+        // Get current position from state (it's already updated by handleMouseMove/handleTouchMove)
         const currentPosition = position;
         localStorage.setItem('upload-button-position', JSON.stringify(currentPosition));
       }
@@ -239,17 +267,33 @@ export default function UploadFile() {
     }
   }, [position]);
 
-  // Add global mouse event listeners
+  const handleMouseUp = useCallback(() => {
+    handleDragEnd();
+  }, [handleDragEnd]);
+
+  const handleTouchEnd = useCallback(() => {
+    handleDragEnd();
+  }, [handleDragEnd]);
+
+  // Add global mouse and touch event listeners
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      // Mouse events for desktop
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
+      
+      // Touch events for mobile
+      window.addEventListener('touchmove', handleTouchMove, { passive: false });
+      window.addEventListener('touchend', handleTouchEnd);
+      
       return () => {
         window.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('mouseup', handleMouseUp);
+        window.removeEventListener('touchmove', handleTouchMove);
+        window.removeEventListener('touchend', handleTouchEnd);
       };
     }
-  }, [handleMouseMove, handleMouseUp]);
+  }, [handleMouseMove, handleMouseUp, handleTouchMove, handleTouchEnd]);
 
   return (
     <>
@@ -262,6 +306,7 @@ export default function UploadFile() {
           right: `${position.right}px`,
         }}
         onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
         onClick={(e) => {
           // Check if this was a drag operation (only check hasMoved, not isDragging)
           const wasDrag = dragRef.current?.hasMoved;
@@ -274,6 +319,20 @@ export default function UploadFile() {
           }
           
           // Only open dialog if it was a genuine click (no drag)
+          handleOpen();
+        }}
+        onTouchEnd={(e) => {
+          // Check if this was a drag operation (only check hasMoved, not isDragging)
+          const wasDrag = dragRef.current?.hasMoved;
+          
+          if (wasDrag) {
+            // Prevent click if was dragging
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+          }
+          
+          // Only open dialog if it was a genuine tap (no drag)
           handleOpen();
         }}
         aria-label="Upload File"
