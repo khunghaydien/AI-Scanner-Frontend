@@ -6,7 +6,7 @@ import { Box, Typography, CircularProgress, Checkbox } from '@mui/material';
 import { FileItem } from './recent-files.hook';
 import { formatDateTime } from './utils';
 import { FileThumbnail } from './file-thumbnail';
-
+import { FileActions } from './file-actions';
 export default function RecentFiles() {
   const { files, isLoading, isError, error, hasNextPage, isFetchingNextPage, fetchNextPage } = useRecentFiles();
   const observerTarget = useRef<HTMLDivElement>(null);
@@ -57,7 +57,6 @@ export default function RecentFiles() {
     }
   }, [checkedFiles.size, files]);
 
-
   if (isLoading && files.length === 0) {
     return (
       <Box className="flex items-center justify-center p-8">
@@ -83,8 +82,6 @@ export default function RecentFiles() {
       </Box>
     );
   }
-  console.log(files);
-
   return (
     <>
       <Box className="space-y-4">
@@ -131,11 +128,14 @@ export default function RecentFiles() {
               </Box>
 
               {/* Checkbox */}
-              <Checkbox
-                checked={checkedFiles.has(file.id)}
-                onChange={() => handleToggleCheck(file.id)}
-                onClick={(e) => e.stopPropagation()}
-              />
+              <div className="flex items-center justify-center">
+                <Checkbox
+                  className="h-fit"
+                  checked={checkedFiles.has(file.id)}
+                  onChange={() => handleToggleCheck(file.id)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
             </Box>
           ))}
         </Box>
@@ -147,6 +147,13 @@ export default function RecentFiles() {
           </Box>
         )}
       </Box>
+      {
+        checkedFiles.size > 0 && (
+          <FileActions
+            checkedFiles={files.filter((file: FileItem) => checkedFiles.has(file.id))}
+          />
+        )
+      }
     </>
   );
 }
