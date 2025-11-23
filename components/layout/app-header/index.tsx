@@ -3,6 +3,7 @@
 import GlobalSearch from './global-search';
 import { SyncUp } from './sync-up';
 import { AccountCrown } from './account-crown';
+import { ThemeToggle } from './theme-toggle';
 
 export const AppHeader = () => {
   return (
@@ -10,6 +11,7 @@ export const AppHeader = () => {
       <div className="mx-auto flex w-full items-center justify-between gap-4 px-4 py-3">
         <GlobalSearch className="max-w-xl" />
         <div className="flex items-center gap-1">
+          <ThemeToggle />
           <SyncUp />
           <AccountCrown />
         </div>

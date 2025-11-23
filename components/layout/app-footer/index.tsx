@@ -55,9 +55,9 @@ export default function AppFooter({ buttons }: { buttons: ButtonProps[] }) {
         component="footer"
         className="h-16 fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background flex items-center justify-center"
       >
-        {buttons.map((button) => (
+        {buttons.map((button, index) => (
           <CommonButton
-            key={button.label}
+            key={index}
             icon={button.icon}
             label={button.label}
             onClick={button.onClick}
@@ -95,7 +95,6 @@ export const HomeFooter = () => {
               <IconComponent className={clsx("h-6 w-6", isActive(config) ? 'text-primary' : 'text-foreground')} />
             </IconButton>
           ),
-          label: config.label,
           active: isActive(config),
           onClick: () => router.push(config.path),
           className: 'flex-1',

@@ -22,7 +22,7 @@ const LayoutHeader: React.FC<{ children: ReactNode }> = ({ children }) => {
 
 const LayoutMain: React.FC<{ children: ReactNode }> = ({ children }) => {
   return (
-    <main className="flex-1 overflow-y-auto h-[calc(100vh-112px)] my-16 p-4 space-y-4">
+    <main className="flex-1 overflow-y-auto h-[calc(100vh-112px)] my-16 space-y-4">
       {children}
     </main>
   );
