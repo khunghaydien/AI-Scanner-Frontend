@@ -1,63 +1,75 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useMemo } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { useRecentFiles } from './recent-files.hook';
 import { Box, Typography, CircularProgress, Checkbox } from '@mui/material';
-import { FileItem } from './recent-files.hook';
-import { formatDateTime } from './utils';
 import { FileActions } from './file-actions';
-import Image from 'next/image';
-import ImageIcon from '@mui/icons-material/Image';
+import FileRow from './file-row';
+import { useCachedHandler } from './use-cached-handler.hook';
+
+const ITEM_HEIGHT = 78; // 70px height + 8px gap
+const FETCH_THRESHOLD = 100; // Fetch when 100px from bottom
+
 export default function RecentFiles() {
   const { files, isLoading, isError, error, hasNextPage, isFetchingNextPage, fetchNextPage } = useRecentFiles();
-  const observerTarget = useRef<HTMLDivElement>(null);
+  const parentRef = useRef<HTMLDivElement>(null);
   const [checkedFiles, setCheckedFiles] = useState<Set<string>>(new Set());
-  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
 
-  // Infinite scroll handler
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      },
-      { threshold: 0.1 }
-    );
+  const virtualizer = useVirtualizer({
+    count: files.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => ITEM_HEIGHT,
+    overscan: 5,
+  });
 
-    const currentTarget = observerTarget.current;
-    if (currentTarget) {
-      observer.observe(currentTarget);
-    }
+  const checkedFilesList = useMemo(
+    () => files.filter((file) => checkedFiles.has(file.id)),
+    [files, checkedFiles]
+  );
 
-    return () => {
-      if (currentTarget) {
-        observer.unobserve(currentTarget);
-      }
-    };
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  const isAllChecked = useMemo(
+    () => files.length > 0 && checkedFiles.size === files.length,
+    [files.length, checkedFiles.size]
+  );
+
+  const isIndeterminate = useMemo(
+    () => checkedFiles.size > 0 && checkedFiles.size < files.length,
+    [checkedFiles.size, files.length]
+  );
 
   const handleToggleCheck = useCallback((fileId: string) => {
     setCheckedFiles((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(fileId)) {
-        newSet.delete(fileId);
-      } else {
-        newSet.add(fileId);
-      }
+      newSet.has(fileId) ? newSet.delete(fileId) : newSet.add(fileId);
       return newSet;
     });
   }, []);
 
   const handleCheckAll = useCallback(() => {
-    if (checkedFiles.size === files.length) {
-      // Uncheck all
-      setCheckedFiles(new Set());
-    } else {
-      // Check all
-      setCheckedFiles(new Set(files.map((file) => file.id)));
-    }
+    setCheckedFiles(
+      checkedFiles.size === files.length
+        ? new Set()
+        : new Set(files.map((file) => file.id))
+    );
   }, [checkedFiles.size, files]);
+
+  const handleScroll = useCallback(() => {
+    if (!parentRef.current || !hasNextPage || isFetchingNextPage) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = parentRef.current;
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+
+    if (distanceFromBottom < FETCH_THRESHOLD) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const fileIds = useMemo(() => files.map((f) => f.id), [files]);
+  const getToggleHandler = useCachedHandler(
+    useCallback((fileId: string) => () => handleToggleCheck(fileId), [handleToggleCheck]),
+    fileIds
+  );
 
   if (isLoading && files.length === 0) {
     return (
@@ -84,93 +96,70 @@ export default function RecentFiles() {
       </Box>
     );
   }
+
   return (
     <>
       <Box className="space-y-4">
         <Box className="flex items-center justify-between">
-          <Typography variant="h6">
-            Recent Files
-          </Typography>
+          <Typography variant="h6">Recent Files</Typography>
           <Box className="flex items-center gap-2">
             <Typography variant="body1">
               {checkedFiles.size}/{files.length}
             </Typography>
             <Checkbox
-              checked={files.length > 0 && checkedFiles.size === files.length}
-              indeterminate={checkedFiles.size > 0 && checkedFiles.size < files.length}
+              checked={isAllChecked}
+              indeterminate={isIndeterminate}
               onChange={handleCheckAll}
             />
           </Box>
         </Box>
-        <Box className="space-y-2">
-          {files.map((file: FileItem) => {
-            const imageUrl = file.thumbnailUrl || file.previewUrl || file.fileUrl;
-            const hasImageError = imageErrors.has(file.id);
-            const isImage = file.mimeType.startsWith('image/');
 
-            return (
-              <Box
-                key={file.id}
-                className="group items-center flex gap-2"
-              >
-                {isImage && !hasImageError ? (
-                  <Image
-                    src={imageUrl}
-                    alt={file.fileName}
-                    width={70}
-                    height={70}
-                    className="w-[70px] h-[70px] object-cover transition-transform duration-300 ease-in-out group-hover:scale-110 rounded-lg"
-                    unoptimized
-                    onError={() => {
-                      setImageErrors((prev) => new Set(prev).add(file.id));
-                    }}
+        <Box
+          ref={parentRef}
+          onScroll={handleScroll}
+          className="overflow-auto"
+          style={{ height: 'calc(100vh - 200px)' }}
+        >
+          <Box
+            style={{
+              height: `${virtualizer.getTotalSize()}px`,
+              width: '100%',
+              position: 'relative',
+            }}
+          >
+            {virtualizer.getVirtualItems().map((virtualItem) => {
+              const file = files[virtualItem.index];
+              return (
+                <Box
+                  key={virtualItem.key}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: `${virtualItem.size}px`,
+                    transform: `translateY(${virtualItem.start}px)`,
+                  }}
+                >
+                  <FileRow
+                    file={file}
+                    isChecked={checkedFiles.has(file.id)}
+                    onToggleCheck={getToggleHandler(file.id)}
                   />
-                ) : (
-                  <div className="w-[70px] h-[70px] object-cover transition-transform duration-300 ease-in-out group-hover:scale-110 rounded-lg bg-muted/50 flex items-center justify-center">
-                    <ImageIcon className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                )}
-                <div className="items-center flex gap-4 flex-1 min-w-0 h-[70px] pl-2 bg-muted/50 rounded-lg">
-                  {/* File info */}
-                  <Box className="flex-1 min-w-0">
-                    <Typography variant="body1" className="font-medium truncate">
-                      {file.fileName}
-                    </Typography>
-                    <Typography variant="caption" className="text-muted-foreground">
-                      {formatDateTime(file.updatedAt)}
-                    </Typography>
-                  </Box>
-
-                  {/* Checkbox */}
-                  <div className="flex items-center justify-center">
-                    <Checkbox
-                      className="h-fit"
-                      checked={checkedFiles.has(file.id)}
-                      onChange={() => handleToggleCheck(file.id)}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </div>
-                </div>
-
-              </Box>
-            );
-          })}
-        </Box>
-
-        {/* Infinite scroll trigger */}
-        {hasNextPage && (
-          <Box ref={observerTarget} className="flex items-center justify-center p-4">
-            {isFetchingNextPage && <CircularProgress size={24} />}
+                </Box>
+              );
+            })}
           </Box>
-        )}
+
+          {isFetchingNextPage && (
+            <Box className="flex items-center justify-center p-4">
+              <CircularProgress size={24} />
+            </Box>
+          )}
+        </Box>
       </Box>
-      {
-        checkedFiles.size > 0 && (
-          <FileActions
-            checkedFiles={files.filter((file: FileItem) => checkedFiles.has(file.id))}
-          />
-        )
-      }
+
+      {checkedFiles.size > 0 && <FileActions checkedFiles={checkedFilesList} />}
     </>
   );
 }

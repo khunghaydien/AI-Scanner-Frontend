@@ -15,12 +15,6 @@ export interface FileItem {
   previewUrl?: string;
 }
 
-interface FilesResponse {
-  files: FileItem[];
-  hasMore: boolean;
-  nextCursor: string | null;
-}
-
 export function useRecentFiles() {
   const {
     data,
@@ -30,39 +24,30 @@ export function useRecentFiles() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    refetch,
-  } = useInfiniteQuery<FilesResponse>({
+  } = useInfiniteQuery({
     queryKey: ['files', 'recent'],
-    queryFn: async ({ pageParam }) => {
-      const response = await FilesService.getFiles(pageParam as string | null | undefined);
-      return {
-        files: response.files || [],
-        hasMore: response.hasMore || false,
-        nextCursor: response.nextCursor || null,
-      };
+    queryFn: async ({ pageParam }: { pageParam: string | null }) => {
+      return FilesService.getFiles({
+        cursor: pageParam ?? undefined,
+        limit: 10,
+      });
     },
-    initialPageParam: null,
-    getNextPageParam: (lastPage) => {
-      return lastPage.hasMore ? lastPage.nextCursor : undefined;
-    },
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextCursor ?? undefined : undefined,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
   });
 
-  // Flatten all pages into a single array
-  const files = data?.pages.flatMap((page) => page.files) || [];
-
   return {
-    files,
+    files: data?.pages.flatMap((page) => page.files) ?? [],
     isLoading,
     isError,
     error,
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
-    refetch,
   };
 }
 

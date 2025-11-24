@@ -15,7 +15,7 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
     <AuthGate>
       <div className="relative bg-background flex flex-col h-screen">
         <AppHeader />
-        <main className="flex-1 overflow-y-auto h-[calc(100vh-112px)] my-16 space-y-4">
+        <main className="flex-1 h-screen my-16 space-y-4">
           {children}
         </main>
         <footer className="flex-shrink-0">

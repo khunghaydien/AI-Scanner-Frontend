@@ -1,5 +1,11 @@
 import { fetchClient } from ".";
 import { ENDPOINT } from "./endpoint";
+import { buildParams } from "./services.ultils";
+
+interface GetFilesParams {
+    cursor?: string;
+    limit?: number;
+}
 
 export class FilesService {
     /**
@@ -23,12 +29,13 @@ export class FilesService {
             throw new Error(error.message || 'Failed to upload file');
         }
     }
-    static async getFiles(cursor?: string | null) {
+    static async getFiles(getFilesParams: GetFilesParams) {
         try {
-            const url = cursor 
-                ? `${ENDPOINT.FILES_SERVICE}?cursor=${encodeURIComponent(cursor)}`
+            const params = buildParams(getFilesParams);
+            const url = params 
+                ? `${ENDPOINT.FILES_SERVICE}?${params}`
                 : ENDPOINT.FILES_SERVICE;
-            
+
             const response = await fetchClient<{
                 success: boolean;
                 status: number;
@@ -41,7 +48,7 @@ export class FilesService {
             }>(url, {
                 method: 'GET',
             });
-            
+
             return response.data;
         } catch (error: any) {
             throw new Error(error.message || 'Failed to get files');
