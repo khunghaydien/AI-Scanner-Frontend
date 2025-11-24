@@ -177,7 +177,7 @@ export default function UploadFile() {
 
   // Drag handlers for touch
   const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    e.preventDefault();
+    // Don't preventDefault here - allow normal scrolling if user is not dragging button
     const touch = e.touches[0];
     if (touch) {
       initDragState(touch.clientX, touch.clientY);
@@ -231,11 +231,30 @@ export default function UploadFile() {
   }, [updatePosition]);
 
   const handleTouchMove = useCallback((e: TouchEvent) => {
-    e.preventDefault();
+    // Only preventDefault if we're actually dragging the button
+    // This allows normal scrolling when not dragging
+    if (!dragRef.current || !buttonRef.current) {
+      // No drag in progress, allow normal scroll
+      return;
+    }
+    
     const touch = e.touches[0];
-    if (touch) {
+    if (!touch) {
+      return;
+    }
+    
+    // Check if we're dragging (has moved beyond threshold)
+    const moveThreshold = 5;
+    const deltaX = Math.abs(touch.clientX - dragRef.current.startX);
+    const deltaY = Math.abs(touch.clientY - dragRef.current.startY);
+    const isDragging = dragRef.current.isDragging === true || deltaX > moveThreshold || deltaY > moveThreshold;
+    
+    // Only preventDefault and update position if we're actually dragging the button
+    if (isDragging) {
+      e.preventDefault();
       updatePosition(touch.clientX, touch.clientY);
     }
+    // If not dragging, allow normal scroll behavior (don't preventDefault)
   }, [updatePosition]);
 
   // Helper function to handle drag end
