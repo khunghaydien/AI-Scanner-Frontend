@@ -2,18 +2,49 @@
 
 import { useRef, useState, useCallback, useMemo } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { useRecentFiles } from './recent-files.hook';
 import { Box, Typography, CircularProgress, Checkbox } from '@mui/material';
 import { FileActions } from './file-actions';
 import FileRow from './file-row';
 import { useCachedHandler } from './use-cached-handler.hook';
+import { FilesService } from '@/services/files.service';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
 const ITEM_HEIGHT = 78; // 70px height + 8px gap
 const FETCH_THRESHOLD = 100; // Fetch when 100px from bottom
 
 export default function RecentFiles() {
-  const { files, isLoading, isError, error, hasNextPage, isFetchingNextPage, fetchNextPage } = useRecentFiles();
+
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['files', 'recent'],
+    queryFn: async ({ pageParam }: { pageParam: string | null }) => {
+      return FilesService.getFiles({
+        cursor: pageParam ?? undefined,
+        limit: 10,
+      });
+    },
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextCursor ?? undefined : undefined,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
+  });
+
+  const { data: totalFilesCount, isLoading: isLoadingTotalFilesCount, isError: isErrorTotalFilesCount, error: errorTotalFilesCount } = useQuery({
+    queryKey: ['files', 'total'],
+    queryFn: () => FilesService.getTotalFilesCount(),
+  });
+
   const parentRef = useRef<HTMLDivElement>(null);
+  const files = data?.pages.flatMap((page) => page.files) ?? [];
   const [checkedFiles, setCheckedFiles] = useState<Set<string>>(new Set());
 
   const virtualizer = useVirtualizer({
@@ -101,10 +132,10 @@ export default function RecentFiles() {
     <>
       <Box className="space-y-4">
         <Box className="flex items-center justify-between">
-          <Typography variant="h6">Recent Files</Typography>
+          <Typography variant="h6">Total Files: {totalFilesCount}</Typography>
           <Box className="flex items-center gap-2">
             <Typography variant="body1">
-              {checkedFiles.size}/{files.length}
+              Selected files: {checkedFiles.size}
             </Typography>
             <Checkbox
               checked={isAllChecked}
