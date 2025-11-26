@@ -38,11 +38,6 @@ export default function RecentFiles() {
     refetchOnMount: true,
   });
 
-  const { data: totalFilesCount, isLoading: isLoadingTotalFilesCount, isError: isErrorTotalFilesCount, error: errorTotalFilesCount } = useQuery({
-    queryKey: ['files', 'total'],
-    queryFn: () => FilesService.getTotalFilesCount(),
-  });
-
   const parentRef = useRef<HTMLDivElement>(null);
   const files = data?.pages.flatMap((page) => page.files) ?? [];
   const [checkedFiles, setCheckedFiles] = useState<Set<string>>(new Set());
@@ -132,10 +127,10 @@ export default function RecentFiles() {
     <>
       <Box className="space-y-4">
         <Box className="flex items-center justify-between">
-          <Typography variant="h6">Total Files: {totalFilesCount}</Typography>
+          <Typography variant="h6">Recent Files</Typography>
           <Box className="flex items-center gap-2">
             <Typography variant="body1">
-              Selected files: {checkedFiles.size}
+              {checkedFiles.size}/{files.length}
             </Typography>
             <Checkbox
               checked={isAllChecked}
