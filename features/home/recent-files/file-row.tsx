@@ -1,12 +1,12 @@
 import { memo, useMemo, useState } from 'react';
-import { FileItem } from "./recent-files.hook";
 import { Box, Typography, Checkbox } from "@mui/material";
 import Image from "next/image";
 import ImageIcon from "@mui/icons-material/Image";
 import { formatDateTime } from "./utils";
+import { FileResponse } from "@/services/files.service";
 
 interface FileRowProps {
-    file: FileItem;
+    file: FileResponse;
     isChecked: boolean;
     onToggleCheck: () => void;
 }

@@ -10,10 +10,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import MergeTypeIcon from '@mui/icons-material/MergeType';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { FileItem } from "./recent-files.hook";
+import { FileResponse } from "@/services/files.service";
 
 interface FileActionsProps {
-    checkedFiles: FileItem[];
+    checkedFiles: FileResponse[];
 }
 
 function FileActionsComponent({
