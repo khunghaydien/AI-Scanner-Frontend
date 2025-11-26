@@ -14,14 +14,12 @@ interface FileRowProps {
 function FileRowComponent({ file, isChecked, onToggleCheck }: FileRowProps) {
     const [imageError, setImageError] = useState(false);
 
+    // Use thumbnailUrl first, then first fileUrl from fileUrls array
     const imageUrl = useMemo(
-        () => file.thumbnailUrl || file.previewUrl || file.fileUrl,
-        [file.thumbnailUrl, file.previewUrl, file.fileUrl]
+        () => file.thumbnailUrl || file.fileUrls?.[0] || '',
+        [file.thumbnailUrl, file.fileUrls]
     );
-    const isImage = useMemo(
-        () => file.mimeType.startsWith('image/'),
-        [file.mimeType]
-    );
+
     const formattedDate = useMemo(
         () => formatDateTime(file.updatedAt),
         [file.updatedAt]
@@ -31,22 +29,24 @@ function FileRowComponent({ file, isChecked, onToggleCheck }: FileRowProps) {
 
     return (
         <Box className="group items-center flex gap-2 mb-3">
-            {isImage && !imageError ? (
-                <Image
-                    src={imageUrl}
-                    alt={file.fileName}
-                    width={70}
-                    height={70}
-                    className="w-[70px] h-[70px] object-cover transition-transform duration-300 ease-in-out group-hover:scale-110 rounded-lg"
-                    unoptimized
-                    onError={handleImageError}
-                />
+            {!imageError && imageUrl ? (
+                <div className="w-[70px] h-[70px] rounded-lg overflow-hidden">
+                    <Image
+                        src={imageUrl}
+                        alt={file.fileName}
+                        width={70}
+                        height={70}
+                        className="w-[70px] h-[70px] object-cover transition-transform duration-300 ease-in-out group-hover:scale-110"
+                        unoptimized
+                        onError={handleImageError}
+                    />
+                </div>
             ) : (
-                <div className="w-[70px] h-[70px] object-cover transition-transform duration-300 ease-in-out group-hover:scale-110 rounded-lg bg-muted/50 flex items-center justify-center">
+                <div className="w-[70px] h-[70px] rounded-lg bg-muted/50 flex items-center justify-center">
                     <ImageIcon className="w-8 h-8 text-muted-foreground" />
                 </div>
             )}
-            <div className="items-center flex gap-4 flex-1 min-w-0 h-[70px] pl-2 bg-muted/50 rounded-lg">
+            <div className="items-center flex gap-4 flex-1 min-w-0 h-[70px] pl-2 bg-muted/50 rounded-lg border border-muted/50">
                 <Box className="flex-1 min-w-0">
                     <Typography variant="body1" className="font-medium truncate">
                         {file.fileName}
@@ -74,11 +74,8 @@ export default memo(FileRowComponent, (prevProps, nextProps) => {
         prevProps.file.fileName === nextProps.file.fileName &&
         prevProps.file.updatedAt === nextProps.file.updatedAt &&
         prevProps.file.thumbnailUrl === nextProps.file.thumbnailUrl &&
-        prevProps.file.previewUrl === nextProps.file.previewUrl &&
-        prevProps.file.fileUrl === nextProps.file.fileUrl &&
-        prevProps.file.mimeType === nextProps.file.mimeType &&
+        JSON.stringify(prevProps.file.fileUrls) === JSON.stringify(nextProps.file.fileUrls) &&
         prevProps.isChecked === nextProps.isChecked &&
         prevProps.onToggleCheck === nextProps.onToggleCheck
     );
 });
-  

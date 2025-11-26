@@ -22,6 +22,7 @@ export default function RecentFiles() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    refetch,
   } = useInfiniteQuery({
     queryKey: ['files', 'recent'],
     queryFn: async ({ pageParam }: { pageParam: string | null }) => {
@@ -39,7 +40,11 @@ export default function RecentFiles() {
   });
 
   const parentRef = useRef<HTMLDivElement>(null);
-  const files = data?.pages.flatMap((page) => page.files) ?? [];
+  // Filter only image files (all files from API should be images)
+  const files = useMemo(
+    () => data?.pages.flatMap((page) => page.files) ?? [],
+    [data]
+  );
   const [checkedFiles, setCheckedFiles] = useState<Set<string>>(new Set());
 
   const virtualizer = useVirtualizer({
@@ -185,7 +190,11 @@ export default function RecentFiles() {
         </Box>
       </Box>
 
-      {checkedFiles.size > 0 && <FileActions checkedFiles={checkedFilesList} />}
+      {checkedFiles.size > 0 && (
+        <FileActions
+          checkedFiles={checkedFilesList}
+        />
+      )}
     </>
   );
 }

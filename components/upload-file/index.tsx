@@ -7,7 +7,6 @@ import { useUploadFiles } from './upload-files.hook';
 import { useQueryClient } from '@tanstack/react-query';
 import CameraIcon from '@mui/icons-material/Camera';
 import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
-import DescriptionIcon from '@mui/icons-material/Description';
 import SettingsIcon from '@mui/icons-material/Settings';
 
 export default function UploadFile() {
@@ -16,14 +15,25 @@ export default function UploadFile() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const documentInputRef = useRef<HTMLInputElement>(null);
   const { uploadFiles: uploadFilesMutation, isLoading } = useUploadFiles();
   const queryClient = useQueryClient();
 
-  // Function chung để xử lý upload files
+  // Function chung để xử lý upload files - chỉ chấp nhận ảnh
   const handleUploadFiles = useCallback(
-    async (files: File[], successMessage: string = 'Upload thành công!') => {
+    async (files: File[], successMessage: string = 'Upload ảnh thành công!') => {
       try {
+        // Filter chỉ lấy file ảnh
+        const imageFiles = files.filter((file) => file.type.startsWith('image/'));
+        
+        if (imageFiles.length === 0) {
+          alert('Vui lòng chọn file ảnh!');
+          return;
+        }
+
+        if (imageFiles.length < files.length) {
+          alert(`Đã bỏ qua ${files.length - imageFiles.length} file không phải ảnh.`);
+        }
+
         // Đóng dialog trước
         setIsOpen(false);
         
@@ -37,7 +47,7 @@ export default function UploadFile() {
         }
 
         // Upload files
-        await uploadFilesMutation(files);
+        await uploadFilesMutation(imageFiles);
 
         // Refetch lại danh sách files
         await queryClient.invalidateQueries({ queryKey: ['files', 'recent'] });
@@ -99,32 +109,14 @@ export default function UploadFile() {
     imageInputRef.current?.click();
   }, []);
 
-  const handleSelectDocument = useCallback(() => {
-    documentInputRef.current?.click();
-  }, []);
-
   const handleImageChange = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = e.target.files;
       if (files && files.length > 0) {
-        await handleUploadFiles(Array.from(files), 'Upload ảnh thành công!');
+        await handleUploadFiles(Array.from(files));
         // Reset input
         if (imageInputRef.current) {
           imageInputRef.current.value = '';
-        }
-      }
-    },
-    [handleUploadFiles]
-  );
-
-  const handleDocumentChange = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const files = e.target.files;
-      if (files && files.length > 0) {
-        await handleUploadFiles(Array.from(files), 'Upload file thành công!');
-        // Reset input
-        if (documentInputRef.current) {
-          documentInputRef.current.value = '';
         }
       }
     },
@@ -238,19 +230,9 @@ export default function UploadFile() {
             >
               <PhotoLibraryIcon />
             </IconButton>
-
-            {/* Nhập tin */}
-            <IconButton
-              onClick={handleSelectDocument}
-              className="text-white"
-              aria-label="Input Document"
-            >
-              <DescriptionIcon />
-            </IconButton>
           </Box>
 
-          {/* Hidden file inputs */}
-          {/* Input cho ảnh - chỉ chấp nhận image files */}
+          {/* Hidden file input - chỉ chấp nhận image files */}
           <input
             ref={imageInputRef}
             type="file"
@@ -258,15 +240,6 @@ export default function UploadFile() {
             multiple
             className="hidden"
             onChange={handleImageChange}
-          />
-          {/* Input cho documents - không chấp nhận image files */}
-          <input
-            ref={documentInputRef}
-            type="file"
-            accept=".pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx,.csv"
-            multiple
-            className="hidden"
-            onChange={handleDocumentChange}
           />
         </DialogContent>
       </Dialog>

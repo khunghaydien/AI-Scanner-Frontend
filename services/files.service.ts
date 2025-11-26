@@ -11,13 +11,12 @@ interface GetFilesParams {
 export interface FileResponse {
     id: string;
     fileName: string;
-    fileUrl: string;
-    fileSize: number;
-    mimeType: string;
+    fileUrls: string[];
+    thumbnailUrl?: string;
+    description?: string | null;
+    status: string;
     createdAt: string;
     updatedAt: string;
-    thumbnailUrl?: string;
-    previewUrl?: string;
 }
 
 export interface UpdateFileDto {
@@ -26,6 +25,10 @@ export interface UpdateFileDto {
 }
 
 export interface DeleteFilesDto {
+    fileIds: string[];
+}
+
+export interface MergeFilesDto {
     fileIds: string[];
 }
 
@@ -159,6 +162,64 @@ export class FilesService {
             return response.data;
         } catch (error: any) {
             throw new Error(error.message || 'Failed to delete files');
+        }
+    }
+
+    /**
+     * Convert file to PDF
+     * @param fileId - The file ID
+     */
+    static async convertToPdf(fileId: string) {
+        try {
+            const response = await fetchClient<ApiResponse<{ pdfUrl: string }>>(
+                `${ENDPOINT.FILES_SERVICE}/${fileId}/to-pdf`,
+                {
+                    method: 'POST',
+                }
+            );
+
+            return response.data;
+        } catch (error: any) {
+            throw new Error(error.message || 'Failed to convert to PDF');
+        }
+    }
+
+    /**
+     * Convert file to scanned PDF
+     * @param fileId - The file ID
+     */
+    static async convertToScan(fileId: string) {
+        try {
+            const response = await fetchClient<ApiResponse<{ pdfUrl: string }>>(
+                `${ENDPOINT.FILES_SERVICE}/${fileId}/to-scan`,
+                {
+                    method: 'POST',
+                }
+            );
+
+            return response.data;
+        } catch (error: any) {
+            throw new Error(error.message || 'Failed to convert to scanned PDF');
+        }
+    }
+
+    /**
+     * Merge multiple files into one
+     * @param fileIds - Array of file IDs to merge
+     */
+    static async mergeFiles(fileIds: string[]) {
+        try {
+            const response = await fetchClient<ApiResponse<FileResponse>>(
+                `${ENDPOINT.FILES_SERVICE}/merge`,
+                {
+                    method: 'POST',
+                    body: JSON.stringify({ fileIds } as MergeFilesDto),
+                }
+            );
+
+            return response.data;
+        } catch (error: any) {
+            throw new Error(error.message || 'Failed to merge files');
         }
     }
 }
