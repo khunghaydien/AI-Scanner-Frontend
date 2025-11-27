@@ -12,6 +12,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import MergeTypeIcon from '@mui/icons-material/MergeType';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { FileResponse, FilesService } from "@/services/files.service";
+import { useRouter } from "next/navigation";
 
 interface FileActionsProps {
     checkedFiles: FileResponse[];
@@ -21,6 +22,7 @@ function FileActionsComponent({
     checkedFiles,
 }: FileActionsProps) {
     const queryClient = useQueryClient();
+    const router = useRouter();
     const hasSelection = checkedFiles.length > 0;
     const isSingleSelection = checkedFiles.length === 1;
     const isMultipleSelection = checkedFiles.length > 1;
@@ -36,7 +38,6 @@ function FileActionsComponent({
 
     const handleToScan = useCallback(async () => {
         if (checkedFiles.length === 0 || checkedFiles.length > 1) {
-            alert('Vui lòng chọn 1 file để chuyển đổi sang scanned PDF');
             return;
         }
 
@@ -45,17 +46,14 @@ function FileActionsComponent({
             const result = await FilesService.convertToScan(file.id);
             if (result.pdfUrl) {
                 window.open(result.pdfUrl, '_blank');
-                alert('Đã chuyển đổi thành công! PDF đang được mở trong tab mới.');
             }
         } catch (error: any) {
             console.error('Convert to scan error:', error);
-            alert(error?.message || 'Chuyển đổi sang scanned PDF thất bại. Vui lòng thử lại.');
         }
     }, [checkedFiles]);
 
     const handleToPdf = useCallback(async () => {
         if (checkedFiles.length === 0 || checkedFiles.length > 1) {
-            alert('Vui lòng chọn 1 file để chuyển đổi sang PDF');
             return;
         }
 
@@ -64,11 +62,9 @@ function FileActionsComponent({
             const result = await FilesService.convertToPdf(file.id);
             if (result.pdfUrl) {
                 window.open(result.pdfUrl, '_blank');
-                alert('Đã chuyển đổi thành công! PDF đang được mở trong tab mới.');
             }
         } catch (error: any) {
             console.error('Convert to PDF error:', error);
-            alert(error?.message || 'Chuyển đổi sang PDF thất bại. Vui lòng thử lại.');
         }
     }, [checkedFiles]);
 
@@ -87,17 +83,14 @@ function FileActionsComponent({
         try {
             const fileIds = checkedFiles.map((file) => file.id);
             await deleteMutation.mutateAsync(fileIds);
-            alert(`Đã xóa thành công ${fileCount} file(s)`);
         } catch (error: any) {
             console.error('Delete error:', error);
-            alert(error?.message || 'Xóa files thất bại. Vui lòng thử lại.');
         }
     }, [checkedFiles, deleteMutation]);
 
     const handleEdit = useCallback(() => {
         const selectedFile = checkedFiles[0];
-        console.log('Edit file:', selectedFile);
-        // TODO: Implement edit functionality
+        router.push(`/document/${selectedFile.id}`);
     }, [checkedFiles]);
 
     const mergeMutation = useMutation({
@@ -111,7 +104,6 @@ function FileActionsComponent({
 
     const handleMerge = useCallback(async () => {
         if (checkedFiles.length < 2) {
-            alert('Vui lòng chọn ít nhất 2 files để merge');
             return;
         }
 

@@ -222,4 +222,30 @@ export class FilesService {
             throw new Error(error.message || 'Failed to merge files');
         }
     }
+
+    /**
+     * Add images to an existing file
+     * @param fileId - The file ID
+     * @param files - Array of image files to add
+     */
+    static async addImagesToFile(fileId: string, files: File[]) {
+        try {
+            const formData = new FormData();
+            files.forEach((file) => {
+                formData.append('files', file);
+            });
+
+            const response = await fetchClient<ApiResponse<FileResponse>>(
+                `${ENDPOINT.FILES_SERVICE}/${fileId}/images`,
+                {
+                    method: 'POST',
+                    body: formData,
+                }
+            );
+
+            return response.data;
+        } catch (error: any) {
+            throw new Error(error.message || 'Failed to add images to file');
+        }
+    }
 }

@@ -22,7 +22,6 @@ export default function RecentFiles() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    refetch,
   } = useInfiniteQuery({
     queryKey: ['files', 'recent'],
     queryFn: async ({ pageParam }: { pageParam: string | null }) => {

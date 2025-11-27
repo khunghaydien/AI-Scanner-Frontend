@@ -26,12 +26,10 @@ export default function UploadFile() {
         const imageFiles = files.filter((file) => file.type.startsWith('image/'));
         
         if (imageFiles.length === 0) {
-          alert('Vui lòng chọn file ảnh!');
           return;
         }
 
         if (imageFiles.length < files.length) {
-          alert(`Đã bỏ qua ${files.length - imageFiles.length} file không phải ảnh.`);
         }
 
         // Đóng dialog trước
@@ -55,7 +53,6 @@ export default function UploadFile() {
         alert(successMessage);
       } catch (error) {
         console.error('Upload error:', error);
-        alert('Upload thất bại. Vui lòng thử lại.');
       }
     },
     [uploadFilesMutation, queryClient, stream, setStream]
@@ -72,7 +69,6 @@ export default function UploadFile() {
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
-      alert('Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.');
     }
   }, []);
 
@@ -204,7 +200,6 @@ export default function UploadFile() {
             <IconButton
               onClick={() => {
                 // TODO: Implement features menu
-                alert('Tính năng đang phát triển');
               }}
               className="text-white"
               aria-label="Features"
