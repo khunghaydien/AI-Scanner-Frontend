@@ -38,12 +38,36 @@ function createBaseHeaders(options?: RequestInit): HeadersInit {
 }
 
 /**
+ * Helper function để lấy token storage (tránh circular dependency)
+ */
+function getTokenStorage() {
+  if (typeof window === 'undefined') return null;
+  try {
+    return require('../lib/auth/token-storage').tokenStorage;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Tạo headers có authentication
- * Với httpOnly cookies, không cần thêm Authorization header
+ * Ưu tiên sử dụng token từ localStorage, fallback về cookies
  */
 function createAuthHeaders(options?: RequestInit): HeadersInit {
-  // Cookies được tự động gửi với credentials: "include"
-  return createBaseHeaders(options);
+  const headers = createBaseHeaders(options) as Record<string, string>;
+
+  // Lấy token từ localStorage nếu có
+  const tokenStorage = getTokenStorage();
+  if (tokenStorage) {
+    const accessToken = tokenStorage.getAccessToken();
+
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+  }
+
+  // Cookies vẫn được tự động gửi với credentials: "include" như fallback
+  return headers;
 }
 
 /**
@@ -98,9 +122,21 @@ async function retryRefreshToken(): Promise<boolean> {
       console.log(`Attempting to refresh token (attempt ${attempt}/${maxRetries})`);
 
       // Sử dụng refreshTokenFetch thay vì AuthService.refreshToken để tránh circular dependency
-      await refreshTokenFetch<any>('/auth/refresh', {
+      const response = await refreshTokenFetch<{ data: { accessToken?: string; refreshToken?: string; token?: string } }>('/auth/refresh', {
         method: 'POST',
       });
+
+      // Lưu tokens mới vào localStorage nếu có
+      const tokenStorage = getTokenStorage();
+      if (tokenStorage && response?.data) {
+        const accessToken = response.data.accessToken || response.data.token;
+        const refreshToken = response.data.refreshToken;
+
+        if (accessToken) {
+          tokenStorage.setTokens(accessToken, refreshToken);
+        }
+      }
+
       console.log('Token refreshed successfully');
       return true;
     } catch (error) {
@@ -127,6 +163,11 @@ async function retryRefreshToken(): Promise<boolean> {
 function redirectToSignIn() {
   // Check if we're in a browser environment
   if (typeof window !== 'undefined') {
+    // Xóa tokens khi redirect về sign-in
+    const tokenStorage = getTokenStorage();
+    if (tokenStorage) {
+      tokenStorage.clearTokens();
+    }
     window.location.href = '/sign-in';
   }
 }

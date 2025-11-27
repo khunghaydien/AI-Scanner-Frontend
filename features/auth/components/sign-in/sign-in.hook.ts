@@ -2,10 +2,12 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AuthService } from '@/services/auth.service';
 import { useState } from 'react';
 import { createSignInSchema } from './sign-in.schema';
+import { tokenStorage } from '@/lib/auth/token-storage';
+import { useRouter } from 'next/navigation';
 
 export interface SignInData {
   email: string;
@@ -14,26 +16,34 @@ export interface SignInData {
 }
 
 interface SignInResponse {
-  user: {
-    id: string;
-    email: string;
-    name?: string;
-  };
-  token: string;
+  accessToken: string;
+  refreshToken: string;
 }
 
 export function useSignIn() {
   const t = useTranslations();
   const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const router = useRouter();
 
   const signInMutation = useMutation({
     mutationFn: async (data: { email: string; password: string }) => {
       const response = await AuthService.signIn(data);
       return response as SignInResponse;
     },
-    onSuccess: (data) => {
-      // Backend set cookies automatically, no need to store in localStorage
+    onSuccess: async (data: SignInResponse) => {
       setError(null);
+      
+      // Lưu tokens vào localStorage
+      tokenStorage.setTokens(data.accessToken, data.refreshToken);
+      
+      // Invalidate và refetch user profile
+      await queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+      await queryClient.refetchQueries({ queryKey: ['auth', 'me'] });
+      
+      // Redirect on success
+      router.push('/');
+      router.refresh();
     },
     onError: (error: any) => {
       setError(error?.message || 'An error occurred during sign in');

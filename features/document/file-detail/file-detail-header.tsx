@@ -40,7 +40,7 @@ export default function FileDetailHeader({ file }: { file: FileResponse | undefi
             >
                 <ArrowBack className={clsx("h-6 w-6", hasFile ? 'text-foreground' : 'text-muted-foreground')} />
             </IconButton>
-            <p className="text-2xl font-bold flex-1 truncate">{file?.fileName || 'Loading...'}</p>
+            <p className="font-bold flex-1 truncate">{file?.fileName || 'Loading...'}</p>
             <IconButton
                 aria-label="Edit name"
                 onClick={handleEditName}

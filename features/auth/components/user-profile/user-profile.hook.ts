@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { AuthService } from '@/services/auth.service';
+import { tokenStorage } from '@/lib/auth/token-storage';
 
 export interface User {
   id: string;
@@ -33,6 +34,8 @@ export function useUserProfile() {
       await AuthService.signOut();
     },
     onSuccess: () => {
+      // Xóa tokens khỏi localStorage
+      tokenStorage.clearTokens();
       window.location.href = '/sign-in';
     },
   });

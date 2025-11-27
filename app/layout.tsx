@@ -6,6 +6,7 @@ import { ReactQueryProvider } from '@/lib/react-query';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getLocale, getTranslations } from 'next-intl/server';
 import ErrorBoundary from '@/components/error-boundary';
+import { OAuthCallback } from '@/features/auth/components/oauth-callback';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -61,6 +62,7 @@ export default async function RootLayout({
               disableTransitionOnChange
             >
               <NextIntlClientProvider messages={messages} locale={locale}>
+                <OAuthCallback />
                 {children}
               </NextIntlClientProvider>
             </MuiProvider>
