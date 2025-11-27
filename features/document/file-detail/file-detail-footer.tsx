@@ -33,7 +33,6 @@ function FileDetailFooterComponent({
             }
         } catch (error: any) {
             console.error('Convert to scan error:', error);
-            alert(error?.message || 'Chuyển đổi sang scanned PDF thất bại. Vui lòng thử lại.');
         }
     }, [file]);
 

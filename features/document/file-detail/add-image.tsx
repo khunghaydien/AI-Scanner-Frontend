@@ -45,15 +45,12 @@ export default function AddImage({ onAddSuccess }: AddImageProps) {
                 // Refetch lại file detail
                 await queryClient.invalidateQueries({ queryKey: ['file', fileId] });
 
-                alert(`Đã thêm thành công ${imageFiles.length} ảnh vào file!`);
 
                 if (onAddSuccess) {
                     onAddSuccess();
                 }
             } catch (error: any) {
                 console.error('Add images error:', error);
-                alert(error?.message || 'Thêm ảnh thất bại. Vui lòng thử lại.');
-            } finally {
                 setIsUploading(false);
                 // Reset input
                 if (fileInputRef.current) {

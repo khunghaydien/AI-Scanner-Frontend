@@ -7,6 +7,7 @@ import FileDetailFooter from "./file-detail-footer";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import AddFile from "./add-image";
+import { ImageSkeleton } from "@/components/ui/skeleton/image-skeleton";
 
 export default function FileDetail() {
     const { fileId } = useParams();
@@ -69,25 +70,35 @@ export default function FileDetail() {
                 ref={scrollContainerRef}
                 className="h-[calc(100vh-124px)] overflow-y-auto pb-[50%] px-4 flex flex-col gap-4"
             >
-                {file?.fileUrls.map((fileUrl, index) => (
-                    <div
-                        key={fileUrl}
-                        ref={(el) => {
-                            imageRefs.current[index] = el;
-                        }}
-                        className="relative w-full flex justify-center min-h-[50vh]"
-                    >
-                        <Image
-                            src={fileUrl}
-                            alt={`${file.fileName} - Page ${index + 1}`}
-                            width={1200}
-                            height={1600}
-                            className="w-full h-auto object-contain"
-                            sizes="100vw"
-                        />
-                    </div>
-                ))}
-                <AddFile />
+                {!file ? (
+                    // Loading skeleton
+                    Array.from({ length: 3 }).map((_, index) => (
+                        <ImageSkeleton key={index} />
+                    ))
+                ) : (
+                    <>
+                        {file.fileUrls.map((fileUrl, index) => (
+                            <div
+                                key={fileUrl + index}
+                                ref={(el) => {
+                                    imageRefs.current[index] = el;
+                                }}
+                                className="relative w-full flex justify-center min-h-[50vh] bg-muted/50"
+                            >
+                                <Image
+                                    src={fileUrl}
+                                    alt={`${file.fileName} - Page ${index + 1}`}
+                                    width={1200}
+                                    height={1600}
+                                    className="w-full h-auto object-contain"
+                                    sizes="100vw"
+                                    priority={index === 0}
+                                />
+                            </div>
+                        ))}
+                        <AddFile />
+                    </>
+                )}
             </div>
             <FileDetailFooter file={file} />
         </>

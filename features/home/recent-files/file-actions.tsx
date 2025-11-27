@@ -16,10 +16,12 @@ import { useRouter } from "next/navigation";
 
 interface FileActionsProps {
     checkedFiles: FileResponse[];
+    handleClearChecked: () => void;
 }
 
 function FileActionsComponent({
     checkedFiles,
+    handleClearChecked,
 }: FileActionsProps) {
     const queryClient = useQueryClient();
     const router = useRouter();
@@ -33,6 +35,7 @@ function FileActionsComponent({
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['files', 'recent'] });
+            handleClearChecked();
         },
     });
 
@@ -47,10 +50,11 @@ function FileActionsComponent({
             if (result.pdfUrl) {
                 window.open(result.pdfUrl, '_blank');
             }
+            handleClearChecked();
         } catch (error: any) {
             console.error('Convert to scan error:', error);
         }
-    }, [checkedFiles]);
+    }, [checkedFiles, handleClearChecked]);
 
     const handleToPdf = useCallback(async () => {
         if (checkedFiles.length === 0 || checkedFiles.length > 1) {
@@ -63,10 +67,11 @@ function FileActionsComponent({
             if (result.pdfUrl) {
                 window.open(result.pdfUrl, '_blank');
             }
+            handleClearChecked();
         } catch (error: any) {
             console.error('Convert to PDF error:', error);
         }
-    }, [checkedFiles]);
+    }, [checkedFiles, handleClearChecked]);
 
     const handleDelete = useCallback(async () => {
         if (checkedFiles.length === 0) return;
@@ -83,15 +88,17 @@ function FileActionsComponent({
         try {
             const fileIds = checkedFiles.map((file) => file.id);
             await deleteMutation.mutateAsync(fileIds);
+            handleClearChecked();
         } catch (error: any) {
             console.error('Delete error:', error);
         }
-    }, [checkedFiles, deleteMutation]);
+    }, [checkedFiles, deleteMutation, handleClearChecked]);
 
     const handleEdit = useCallback(() => {
         const selectedFile = checkedFiles[0];
         router.push(`/document/${selectedFile.id}`);
-    }, [checkedFiles]);
+        handleClearChecked();
+    }, [checkedFiles, handleClearChecked]);
 
     const mergeMutation = useMutation({
         mutationFn: async (fileIds: string[]) => {
@@ -99,6 +106,7 @@ function FileActionsComponent({
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['files', 'recent'] });
+            handleClearChecked();
         },
     });
 
@@ -116,18 +124,21 @@ function FileActionsComponent({
 
         try {
             const fileIds = checkedFiles.map((file) => file.id);
-            await mergeMutation.mutateAsync(fileIds);
-            alert(`Đã merge thành công ${fileCount} file(s) thành một file`);
+            const result = await mergeMutation.mutateAsync(fileIds);
+            if (!result) {
+                return;
+            }
+            router.push(`/document/${result.id}`);
+            handleClearChecked();
         } catch (error: any) {
             console.error('Merge error:', error);
-            alert(error?.message || 'Merge files thất bại. Vui lòng thử lại.');
         }
-    }, [checkedFiles, mergeMutation]);
+    }, [checkedFiles, mergeMutation, handleClearChecked]);
 
     const handleMore = useCallback(() => {
         console.log('More actions for files:', checkedFiles);
         // TODO: Implement more actions menu
-    }, [checkedFiles]);
+    }, [checkedFiles, handleClearChecked]);
 
     const buttons = useMemo(() => [
         {

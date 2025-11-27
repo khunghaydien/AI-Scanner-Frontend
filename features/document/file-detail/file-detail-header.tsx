@@ -31,7 +31,7 @@ export default function FileDetailHeader({ file }: { file: FileResponse | undefi
     return (
         <Box
             component="header"
-            className="h-16 fixed top-0 left-0 right-0 z-[60] border-b border-border bg-background flex items-center gap-2 px-4"
+            className="h-16 fixed top-0 left-0 right-0 z-[60] border-b border-border bg-background flex items-center gap-2 "
         >
             <IconButton
                 aria-label="Back"
@@ -40,7 +40,7 @@ export default function FileDetailHeader({ file }: { file: FileResponse | undefi
             >
                 <ArrowBack className={clsx("h-6 w-6", hasFile ? 'text-foreground' : 'text-muted-foreground')} />
             </IconButton>
-            <h1 className="text-2xl font-bold flex-1 truncate">{file?.fileName || 'Loading...'}</h1>
+            <p className="text-2xl font-bold flex-1 truncate">{file?.fileName || 'Loading...'}</p>
             <IconButton
                 aria-label="Edit name"
                 onClick={handleEditName}

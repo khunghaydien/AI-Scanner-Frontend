@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useCallback, useMemo } from 'react';
+import { useRef, useState, useCallback, useMemo, useEffect } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { Box, Typography, CircularProgress, Checkbox } from '@mui/material';
 import { FileActions } from './file-actions';
@@ -8,6 +8,7 @@ import FileRow from './file-row';
 import { useCachedHandler } from './use-cached-handler.hook';
 import { FilesService } from '@/services/files.service';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { FileRowSkeleton } from '@/components/ui/skeleton/file-row-skeleton';
 
 const ITEM_HEIGHT = 78; // 70px height + 8px gap
 const FETCH_THRESHOLD = 100; // Fetch when 100px from bottom
@@ -103,8 +104,15 @@ export default function RecentFiles() {
 
   if (isLoading && files.length === 0) {
     return (
-      <Box className="flex items-center justify-center p-8">
-        <CircularProgress />
+      <Box className="space-y-4">
+        <Box className="flex items-center justify-between">
+          <Typography variant="h6">Recent Files</Typography>
+        </Box>
+        <Box className="space-y-2">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <FileRowSkeleton key={index} />
+          ))}
+        </Box>
       </Box>
     );
   }
@@ -192,6 +200,7 @@ export default function RecentFiles() {
       {checkedFiles.size > 0 && (
         <FileActions
           checkedFiles={checkedFilesList}
+          handleClearChecked={() => setCheckedFiles(new Set())}
         />
       )}
     </>
