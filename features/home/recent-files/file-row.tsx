@@ -4,6 +4,7 @@ import Image from "next/image";
 import ImageIcon from "@mui/icons-material/Image";
 import { formatDateTime } from "./utils";
 import { FileResponse } from "@/services/files.service";
+import { useRouter } from 'next/navigation';
 
 interface FileRowProps {
     file: FileResponse;
@@ -13,7 +14,7 @@ interface FileRowProps {
 
 function FileRowComponent({ file, isChecked, onToggleCheck }: FileRowProps) {
     const [imageError, setImageError] = useState(false);
-
+    const router = useRouter();
     // Use thumbnailUrl first, then first fileUrl from fileUrls array
     const imageUrl = useMemo(
         () => file.thumbnailUrl || file.fileUrls?.[0] || '',
@@ -28,7 +29,7 @@ function FileRowComponent({ file, isChecked, onToggleCheck }: FileRowProps) {
     const handleImageError = () => setImageError(true);
 
     return (
-        <Box className="group items-center flex gap-2 mb-3">
+        <Box className="group items-center flex gap-2 mb-3" onClick={() => router.push(`/document/${file.id}`)}>
             {!imageError && imageUrl ? (
                 <div className="w-[70px] h-[70px] rounded-lg overflow-hidden">
                     <Image
